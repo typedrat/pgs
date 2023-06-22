@@ -13,14 +13,18 @@ struct Args {
     /// By default, this is the name of the input file without an extension.
     out_dir: Option<PathBuf>,
 
+    #[arg(short = 's', long = "raw-segments")]
+    /// Dump the raw contents of the PGS file as JSON.
+    ///
+    /// Warning! This will likely be *very* large.
+    dump_raw_segments: bool,
+
     /// The .sup file to dump.
     file: PathBuf,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse_from(wild::args());
-    println!("args: {:?}", args);
-
     let out_dir: PathBuf;
 
     if let Some(out_dir_arg) = args.out_dir {
@@ -34,17 +38,23 @@ fn main() -> Result<()> {
     }
 
     fs::create_dir_all(&out_dir)?;
-    let raw_json_path = out_dir.join("raw_segments.json");
-    let json_file = fs::OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(raw_json_path)?;
 
-    let input_contents = fs::read(args.file)?;
-    let segments = parse_segments(&input_contents)?;
+    let input_contents = fs::read(&args.file)?;
 
-    serde_json::to_writer(json_file, &segments.clone())?;
+    let segments: Vec<pgs_subtitles::segments::Segment> = parse_segments(&input_contents)?;
+
+    println!("contains {} segments", segments.len());
+
+    if args.dump_raw_segments {
+        let raw_json_path = out_dir.join("raw_segments.json");
+        let json_file = fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(raw_json_path)?;
+
+        serde_json::to_writer(json_file, &segments.clone())?;
+    }
 
     Ok(())
 }

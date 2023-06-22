@@ -7,6 +7,9 @@ license = "LGPL-2.1-or-later"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = "0.4.19"
-serde = { version = "1.0.164", features = ["derive"] }
-winnow = { version = "0.4.7", features = ["debug"] }
+deku = "0.16.0"
+serde = { version = "1.0.164", features = ["derive"], optional = true }
+thiserror = "1.0.40"
+
+[features]
+serde = ["dep:serde"]
