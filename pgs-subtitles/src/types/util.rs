@@ -7,6 +7,12 @@ pub struct Point {
     pub y: u16,
 }
 
+impl Point {
+    pub fn new(x: u16, y: u16) -> Self {
+        Self { x, y }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Rect {
     left: u16,
@@ -38,7 +44,7 @@ impl Rect {
 pub struct ObjectId(u16);
 
 impl ObjectId {
-    pub fn new(id: u16) -> Self {
+    pub(crate) fn new(id: u16) -> Self {
         Self(id)
     }
 
@@ -51,7 +57,7 @@ impl ObjectId {
 pub struct WindowId(u8);
 
 impl WindowId {
-    pub fn new(id: u8) -> Self {
+    pub(crate) fn new(id: u8) -> Self {
         Self(id)
     }
 
@@ -64,7 +70,7 @@ impl WindowId {
 pub struct PaletteId(u8);
 
 impl PaletteId {
-    pub fn new(id: u8) -> Self {
+    pub(crate) fn new(id: u8) -> Self {
         Self(id)
     }
 

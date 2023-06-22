@@ -7,6 +7,8 @@ license = "GPL-2.0-or-later"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive", "wrap_help"] }
 pgs-subtitles = { path = "../pgs-subtitles" }
+serde_json = "1.0.97"
 wild = "2.1.0"

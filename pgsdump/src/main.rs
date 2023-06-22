@@ -1,4 +1,6 @@
+use anyhow::Result;
 use clap::Parser;
+use pgs_subtitles::segments::parse_segments;
 use std::fs;
 use std::path::PathBuf;
 
@@ -15,7 +17,7 @@ struct Args {
     file: PathBuf,
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
     let args = Args::parse_from(wild::args());
     println!("args: {:?}", args);
 
@@ -31,7 +33,18 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    fs::create_dir_all(out_dir)?;
+    fs::create_dir_all(&out_dir)?;
+    let raw_json_path = out_dir.join("raw_segments.json");
+    let json_file = fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(raw_json_path)?;
+
+    let input_contents = fs::read(args.file)?;
+    let segments = parse_segments(&input_contents)?;
+
+    serde_json::to_writer(json_file, &segments.clone())?;
 
     Ok(())
 }

@@ -90,14 +90,14 @@ impl PGSHeader {
 
 //
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum PGSSegment {
     /// Presentation Composition Segment (PCS)
     PCS(PresentationControlSegment),
 
     /// Window Definition Segment (WDS)
-    WDS,
+    WDS(WindowDefinitionSegment),
 
     /// Palette Definition Segment (PDS)
     PDS,
@@ -111,18 +111,17 @@ pub enum PGSSegment {
 
 //
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PresentationControlSegment {
     presentation_timestamp: PGSTimestamp,
     decoding_timestamp: PGSTimestamp,
     width: u16,
     height: u16,
-    framerate: u8,
     composition_number: u16,
     composition_type: PCSCompositionType,
     is_palette_update_only: bool,
     palette_id: PaletteId,
-    composition_objs: Vec<PCSComposition>,
+    composition_objs: Vec<PCSCompositionObject>,
 }
 
 impl PresentationControlSegment {
@@ -131,19 +130,17 @@ impl PresentationControlSegment {
         decoding_timestamp: PGSTimestamp,
         width: u16,
         height: u16,
-        framerate: u8,
         composition_number: u16,
         composition_type: PCSCompositionType,
         is_palette_update_only: bool,
         palette_id: PaletteId,
-        composition_objs: Vec<PCSComposition>,
+        composition_objs: Vec<PCSCompositionObject>,
     ) -> Self {
         Self {
             presentation_timestamp,
             decoding_timestamp,
             width,
             height,
-            framerate,
             composition_number,
             composition_type,
             is_palette_update_only,
@@ -168,10 +165,6 @@ impl PresentationControlSegment {
         self.height
     }
 
-    pub fn framerate(&self) -> u8 {
-        self.framerate
-    }
-
     pub fn composition_number(&self) -> u16 {
         self.composition_number
     }
@@ -184,16 +177,18 @@ impl PresentationControlSegment {
         self.palette_id
     }
 
-    pub fn composition_objs(&self) -> &[PCSComposition] {
+    pub fn composition_objs(&self) -> &[PCSCompositionObject] {
         &self.composition_objs
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum PCSCompositionType {
     /// This defines a new display. The Epoch Start contains all functional segments needed to display a new
     /// composition on the screen.
     EpochStart,
+
+    EpochContinue,
 
     /// This defines a display refresh, which is used to compose in the middle of the Epoch. It includes functional
     /// segments with new objects to be used in a new composition, replacing old objects with the same Object ID.
@@ -208,15 +203,15 @@ pub enum PCSCompositionType {
     Normal,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PCSComposition {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PCSCompositionObject {
     object_id: ObjectId,
     window_id: WindowId,
     object_position: Point,
     crop_window: Option<Rect>,
 }
 
-impl PCSComposition {
+impl PCSCompositionObject {
     pub fn new(
         object_id: ObjectId,
         window_id: WindowId,
@@ -243,7 +238,52 @@ impl PCSComposition {
         self.object_position
     }
 
+    pub fn set_object_position(&mut self, object_position: Point) {
+        self.object_position = object_position
+    }
+
     pub fn crop_window(&self) -> Option<Rect> {
         self.crop_window
+    }
+
+    pub fn set_crop_window(&mut self, crop_window: Option<Rect>) {
+        self.crop_window = crop_window
+    }
+}
+
+//
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct WindowDefinitionSegment {
+    windows: Vec<Window>,
+}
+
+impl WindowDefinitionSegment {
+    pub fn new(windows: Vec<Window>) -> Self {
+        Self { windows }
+    }
+
+    pub fn windows(&self) -> &[Window] {
+        &self.windows
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Window {
+    window_id: WindowId,
+    window: Rect,
+}
+
+impl Window {
+    pub fn new(window_id: WindowId, window: Rect) -> Self {
+        Self { window_id, window }
+    }
+
+    pub fn window_id(&self) -> WindowId {
+        self.window_id
+    }
+
+    pub fn window(&self) -> Rect {
+        self.window
     }
 }
